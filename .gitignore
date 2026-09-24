@@ -1,0 +1,11 @@
+# Student / verification build products — do not keep in the tree
+*.o
+*.out
+a.out
+*.bin
+*.elf
+# Linked binaries often share the exercise stem with no extension; ignore common local build dirs
+build/
+/tmp/
+*.swp
+*~

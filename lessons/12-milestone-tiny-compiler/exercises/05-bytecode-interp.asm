@@ -1,0 +1,7 @@
+; Exercise 05: bytecode interp
+;
+; Bytes: LOAD 4, LOAD 5, ADD, HALT. Exit 9.
+;
+; Build: nasm -f elf64 05-bytecode-interp.asm -o /tmp/o.o && ld /tmp/o.o -o /tmp/p && /tmp/p; echo $?
+;
+; --- your code below ---

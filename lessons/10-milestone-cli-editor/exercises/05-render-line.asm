@@ -1,0 +1,7 @@
+; Exercise 05: render line
+;
+; Print buffer 'ed\n'; exit 0.
+;
+; Build: nasm -f elf64 05-render-line.asm -o /tmp/o.o && ld /tmp/o.o -o /tmp/p && /tmp/p
+;
+; --- your code below ---

@@ -1,0 +1,7 @@
+; Exercise 22: stretch undo stack
+;
+; STRETCH: push op code 1 then 2; pop once; exit top 1.
+;
+; Build: nasm -f elf64 22-stretch-undo-stack.asm -o /tmp/o.o && ld /tmp/o.o -o /tmp/p && /tmp/p; echo $?
+;
+; --- your code below ---

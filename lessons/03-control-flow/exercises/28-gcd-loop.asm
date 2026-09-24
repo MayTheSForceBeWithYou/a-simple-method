@@ -1,0 +1,7 @@
+; Exercise 28: gcd loop
+;
+; Euclid GCD(48,18)=6. Exit 6.
+;
+; Build: nasm -f elf64 28-gcd-loop.asm -o /tmp/o.o && ld /tmp/o.o -o /tmp/p && /tmp/p; echo $?
+;
+; --- your code below ---

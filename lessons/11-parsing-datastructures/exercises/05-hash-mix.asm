@@ -1,0 +1,7 @@
+; Exercise 05: hash mix
+;
+; x=5; x^=x<<3; exit low byte.
+;
+; Build: nasm -f elf64 05-hash-mix.asm -o /tmp/o.o && ld /tmp/o.o -o /tmp/p && /tmp/p; echo $?
+;
+; --- your code below ---

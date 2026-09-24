@@ -1,0 +1,7 @@
+; Exercise 24: from scratch kill line
+;
+; FROM SCRATCH: "ab\ncd" kill from cur=0 to newline -> len becomes 3 ("\ncd"); exit 3.
+;
+; Build: nasm -f elf64 24-from-scratch-kill-line.asm -o /tmp/o.o && ld /tmp/o.o -o /tmp/p && /tmp/p; echo $?
+;
+; --- your code below ---

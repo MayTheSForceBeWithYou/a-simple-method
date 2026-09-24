@@ -1,0 +1,7 @@
+; Exercise 10: lex ident len
+;
+; Ident "foo" length 3; exit 3.
+;
+; Build: nasm -f elf64 10-lex-ident-len.asm -o /tmp/o.o && ld /tmp/o.o -o /tmp/p && /tmp/p; echo $?
+;
+; --- your code below ---

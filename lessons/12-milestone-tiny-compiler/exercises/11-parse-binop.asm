@@ -1,0 +1,7 @@
+; Exercise 11: parse binop
+;
+; AST for 2+3 folds to 5; exit 5.
+;
+; Build: nasm -f elf64 11-parse-binop.asm -o /tmp/o.o && ld /tmp/o.o -o /tmp/p && /tmp/p; echo $?
+;
+; --- your code below ---

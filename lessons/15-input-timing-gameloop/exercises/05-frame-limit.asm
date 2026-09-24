@@ -1,0 +1,7 @@
+; Exercise 05: frame limit
+;
+; If frame_time < min, pad; return pad amount 2.
+;
+; Build: nasm -f elf64 05-frame-limit.asm -o /tmp/o.o && ld /tmp/o.o -o /tmp/p && /tmp/p; echo $?
+;
+; --- your code below ---
