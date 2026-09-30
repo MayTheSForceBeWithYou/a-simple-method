@@ -1,4 +1,6 @@
-# Learn x86-64 Assembly by Doing
+# A Simple Method
+
+A Simple Method: Learning assembly language programming from the ground up through exercises.
 
 Linux **x86-64**, **NASM**, **System V AMD64 ABI**, **Linux syscalls**.  
 Path: absolute basics → CLI editor → tiny compiler → 2D game/sim skills at *RCT-depth engineering* (original work only).
@@ -27,7 +29,7 @@ Many prompts repeat the build line in the file header. From lesson 09 onward, pr
 ## Layout
 
 ```
-asm/
+a-simple-method/
 ├── README.md
 ├── docs/LEARNING_ROADMAP.md
 └── lessons/

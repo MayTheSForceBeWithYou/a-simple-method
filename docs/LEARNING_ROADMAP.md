@@ -1,4 +1,6 @@
-# x86-64 Assembly Learn-by-Doing Roadmap
+# A Simple Method — Learning Roadmap
+
+Learning assembly language programming from the ground up through exercises.
 
 **Target:** Linux x86-64, NASM syntax, System V AMD64 ABI, Linux syscalls  
 **North star:** Build toward a mini park / coaster-builder simulation (RCT-depth *skills*, original code/assets)  
