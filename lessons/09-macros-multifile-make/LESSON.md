@@ -5,10 +5,10 @@
 1. Paste constants with `%define` and parameterized text with `%macro`.
 2. Repeat and number at assembly time with `%rep` and `%assign`.
 3. Keep macro-local labels on `%%`, and branch with `%ifdef`.
-4. Split a symbol with `global` and `extern`, then link two objects.
+4. Share a symbol across files with `global` and `extern`, then link two objects.
 5. Name Make targets so `.PHONY`, `$@`, `$<`, and `$^` rebuild only what changed.
 
-Lesson 08 wrote syscall numbers by hand. This lesson is how those numbers, and later the editor, stop being copy-paste. The editor buffer is lesson 10. Nothing here calls libc.
+Lesson 08 wrote syscall numbers by hand. This lesson shows how those numbers — and later the editor — stop being copy-paste. The editor buffer is lesson 10. Nothing here calls libc.
 
 ## Text substitution
 
@@ -46,11 +46,11 @@ _start:
     syscall                 ; 3
 ```
 
-That is `07-repeat-macro.asm`. `%ifdef DEBUG` keeps `mov rdi, 1` and drops the `%else` (`13-ifdef-debug.asm` exits 1). `PUSH_CALLEE` pushes `rbx` then `r12`. The matching pops are `r12` then `rbx`, or you restore the wrong register (`09-macro-pushregs.asm` exits 5).
+That is `07-repeat-macro.asm`. `%ifdef DEBUG` keeps `mov rdi, 1` and drops the `%else` (`13-ifdef-debug.asm` exits 1). `PUSH_CALLEE` pushes `rbx` then `r12`. The matching pops are `r12` then `rbx`, otherwise you restore the wrong register (`09-macro-pushregs.asm` exits 5).
 
 ## Local labels inside a macro
 
-A plain `.ok` or `%%` is not the same thing. A dot-label binds to the previous non-local label. Two expansions in one function collide. `%%ok` is rewritten to a unique name on every expansion. `12-strstr-macro-label.asm` never branches: `TWICE` is two `inc rdi`, exit 2. The local label shows up in `24-from-scratch-macro-abs.asm`.
+A plain `.ok` and a `%%ok` are not the same thing. A dot-label binds to the previous non-local label. Two expansions in one function collide. `%%ok` is rewritten to a unique name on every expansion. `12-strstr-macro-label.asm` never branches: `TWICE` is two `inc rdi`, exit 2. The local label shows up in `24-from-scratch-macro-abs.asm`.
 
 ```asm
 %macro ABS 1
@@ -70,7 +70,7 @@ _start:
 
 ## Two objects
 
-`global helper_add` marks a symbol for other objects. `extern helper_add` tells NASM the definition is elsewhere. A single file that both calls and defines the helper does not need `extern` (`06-extern-sim-onefile.asm` exits 5, `14-multifile-sim-globals.asm` returns 20+22 = 42, `19-extern-declare.asm` exits 9). The comment in `05-makefile-note.asm` passes two sources to one `nasm` invocation. NASM assembles one file per run.
+`global helper_add` marks a symbol for other objects. `extern helper_add` tells NASM the definition is elsewhere. A single file that both calls and defines the helper does not need `extern` (`06-extern-sim-onefile.asm` exits 5, `14-multifile-sim-globals.asm` returns 20+22 = 42, `19-extern-declare.asm` exits 9). The comment in `05-makefile-note.asm` shows two sources passed to one `nasm` invocation. NASM assembles one file per run.
 
 Assemble each unit, then link:
 
@@ -100,7 +100,7 @@ _start:
 
 ## Make
 
-The asm drills do not run Make. `05-makefile-note.asm` and `15-makefile-phony-doc.asm` exit 0. `23-stretch-make-dependency.asm` exits 3, which is the object count written as an immediate, not a graph Make walked.
+The asm drills do not run Make. `05-makefile-note.asm` and `15-makefile-phony-doc.asm` exit 0. `23-stretch-make-dependency.asm` exits 3, which is the object count written as an immediate, not a graph that Make walked.
 
 | Token | Meaning |
 |-------|---------|
