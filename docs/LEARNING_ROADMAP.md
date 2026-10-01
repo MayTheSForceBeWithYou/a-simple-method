@@ -93,7 +93,7 @@ Strict sequential through **09**, then **10** (editor milestone).
 - **Exercise target:** 24–36
 - **Status:** **FULL**
 
-### 05 — Procedures & recursion
+### 05 — Procedures & Recursion
 - **Slug:** `05-procedures-recursion`
 - **Goals:** Leaf vs non-leaf; locals on stack; recursion (factorial, Fibonacci, tree walk); mutual recursion.
 - **Exercise target:** 24–32
@@ -140,7 +140,7 @@ Strict sequential through **09**, then **10** (editor milestone).
 - **Exercise target:** 24–32 (full: 24)
 - **Status:** **FULL** (24 exercises)
 
-### 12 — Milestone: tiny language compiler
+### 12 — Milestone: Tiny Language Compiler
 - **Slug:** `12-milestone-tiny-compiler`
 - **Goals:** Lexer → AST or bytecode → emit NASM or raw machine code for a tiny language (ints, lets, if, while, funcs).
 - **Exercise target:** 20–28 + integrated compiler (full: 24)
@@ -151,25 +151,25 @@ Strict sequential through **09**, then **10** (editor milestone).
   - Compiler itself predominantly asm (hosted helpers OK).
 - **Status:** **FULL** (24 exercises)
 
-### 13 — FP, SIMD, fixed-point for games
+### 13 — Fixed-point arithmetic
 - **Slug:** `13-fp-simd-fixedpoint`
-- **Goals:** SSE/AVX basics; Q16.16 (or similar) fixed-point; why RCT-era engines favored integer/fixed-point.
+- **Goals:** fixed-point arithmetic (Q16.16); Q16.16 (or similar) fixed-point; why RCT-era engines favored integer/fixed-point.
 - **Exercise target:** 24–32 (full: 24)
 - **Status:** **FULL** (24 exercises)
 
 ### 14 — Graphics path
 - **Slug:** `14-graphics-framebuffer`
-- **Goals:** Prefer `/dev/fb0` or raw X11/shm thin glue; pixel plots, clear, blit; keep *game logic* in asm.
+- **Goals:** P6 PPM image file output via taught syscalls (open/write/close); pixel plots, clear, blit; keep *game logic* in asm.
 - **Exercise target:** 20–28 (full: 24)
 - **Status:** **FULL** (24 exercises)
 
-### 15 — Input, timing, game loop
+### 15 — Input, Timing, Game Loop
 - **Slug:** `15-input-timing-gameloop`
 - **Goals:** Keyboard/mouse events; `clock_gettime`; fixed timestep vs variable; frame pacing.
 - **Exercise target:** 20–28 (full: 24)
 - **Status:** **FULL** (24 exercises)
 
-### 16 — Sprites, tilemaps, collision
+### 16 — Sprites, Tilemaps, Collision
 - **Slug:** `16-sprites-tilemaps-collision`
 - **Goals:** Tile indexing; sprite blit with clipping; AABB collision; spatial hash intro.
 - **Exercise target:** 24–32 (full: 24)
@@ -181,7 +181,7 @@ Strict sequential through **09**, then **10** (editor milestone).
 - **Exercise target:** 24–32 (full: 24)
 - **Status:** **FULL** (24 exercises)
 
-### 18 — Capstone: mini park / coaster builder
+### 18 — Capstone: Mini Park
 - **Slug:** `18-capstone-park-sim`
 - **Goals:** Integrate map edit, simple ride track pieces, peep agents, economy tick, save/load — almost entirely asm.
 - **Exercise target:** milestone checklist + supporting drills (full: 24)
