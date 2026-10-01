@@ -50,6 +50,6 @@ nasm -v
 ## Scope of this tree
 
 - **00–04:** full lessons (≥24 exercises + solutions each).
-- **05–18:** lesson outlines + starter drills (≥8 each); remaining drills noted in the roadmap for a follow-up fill.
+- **05–18:** full lessons (24 drills each); stretch drills and deeper backends noted in the roadmap for an optional next pass.
 
 No copyrighted Roller Coaster Tycoon assets or verbatim code — themes are inspirational only.
