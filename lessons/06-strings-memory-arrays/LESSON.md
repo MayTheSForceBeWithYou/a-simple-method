@@ -41,7 +41,7 @@ That is `01-strlen.asm`. The same scan returns an index in `11-strchr.asm` (`'l'
 
 ## Copy the terminator
 
-Store the byte, then test the value you stored. Stop after the NUL is written or the destination is not a string. `strcpy` of `"yo"` followed by `strlen` exits 2.
+Store the byte, then test the value you stored. Stop after the NUL is written; otherwise the destination is not a string. `strcpy` of `"yo"` followed by `strlen` exits 2.
 
 ```asm
 section .data
@@ -94,7 +94,7 @@ _start:
 
 ## `rep movsb` is a forward counted copy
 
-`movsb` copies one byte from `[rsi]` to `[rdi]`, then steps both pointers by 1. The step is backward if DF is set. `cld` clears DF. `rep` repeats that `rcx` times and leaves `rcx` at 0. `rsi` and `rdi` end past the range. Direction and operand order are not the System V `memcpy(dst, src)` argument order: here `rsi` is the source.
+`movsb` copies one byte from `[rsi]` to `[rdi]`, then steps both pointers by 1. The step is backward if DF is set. `cld` clears DF. `rep` repeats that `rcx` times and leaves `rcx` at 0. `rsi` and `rdi` end past the range. The register roles match the System V `memcpy(dst, src)` order taught in lesson 04: `rdi` is the destination, `rsi` the source.
 
 ```asm
 section .data
@@ -134,7 +134,7 @@ An array of structures keeps one record's fields adjacent. A structure of arrays
 | AoS, `dq x,y` per record | record `i` at `base+i*16`, `y` at `+8` | you touch one entity |
 | SoA, separate `xs` and `ys` | `xs[i]` at `xs+i*8` | you touch one field across records |
 
-`15-aos-scale.asm` doubles `{3,4}` and exits `x+y` = 14. The solution scales with `shl`. Lesson 07 owns shifts; the point here is the 16-byte stride, not the shift.
+`15-aos-scale.asm` doubles `{3,4}` and exits `x+y` = 14. The solution scales with `shl`. That shift is a forward-use; lesson 07 teaches shifts properly. The point here is the 16-byte stride, not the shift.
 
 ## Row-major index
 
