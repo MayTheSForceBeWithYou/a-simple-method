@@ -5,14 +5,14 @@
 1. Call `read`, `write`, `open`, `close`, and `lseek` with the Linux argument registers.
 2. Treat a negative `rax` as `-errno`, not as a file descriptor.
 3. Map an anonymous page with `mmap` and release it with `munmap`.
-4. Query `brk`, `getpid`, `clock_gettime`, and `pipe` without inventing a libc wrapper.
+4. Call `brk`, `getpid`, `clock_gettime`, and `pipe` directly, without inventing a libc wrapper.
 5. Keep the fourth syscall argument in `r10`. `syscall` clobbers `rcx` and `r11`.
 
-Lesson 00 used `write` and `exit`. This lesson is every other raw call the drills actually make. Macros and `Makefile` rules are lesson 09. Do not wrap these numbers in libc.
+Lesson 00 used `write` and `exit`. This lesson covers the remaining raw syscalls the drills use. Macros and `Makefile` rules are lesson 09. Do not wrap these numbers in libc.
 
 ## The register contract
 
-`rax` is the syscall number. Arguments are `rdi`, `rsi`, `rdx`, `r10`, `r8`, `r9`. The return is `rax`. A return above `0xfffffffffffff000` is a failure: `neg rax` is the errno. `0` is success for `close`, `munmap`, `clock_gettime`, and `pipe`. `open` returns a small nonnegative fd.
+`rax` is the syscall number. Arguments are `rdi`, `rsi`, `rdx`, `r10`, `r8`, `r9`. The return is `rax`. A return above `0xfffffffffffff000` is a failure: `neg rax` is the errno. `0` is success for `close`, `munmap`, `clock_gettime`, and `pipe`. `open` returns a small nonnegative fd. A file descriptor is the kernel's per-process handle for an open file: a small nonnegative integer you pass to `read`, `write`, `lseek`, and `close`. Three are pre-opened before `_start` runs: 0 is standard input, 1 is standard output, 2 is standard error. `open` returns the lowest unused descriptor.
 
 | `rax` | Call | Arguments you need here |
 |------:|------|-------------------------|
@@ -23,8 +23,8 @@ Lesson 00 used `write` and `exit`. This lesson is every other raw call the drill
 | 8 | `lseek` | fd, offset, whence |
 | 9 | `mmap` | addr, length, prot, flags in `r10`, fd, offset |
 | 11 | `munmap` | addr, length |
-| 12 | `brk` | 0 to query the current break |
-| 22 | `pipe` | pointer to two ints |
+| 12 | `brk` | 0 to query the current break (the end of the data segment) |
+| 22 | `pipe` | pointer to two dwords (4 bytes each) |
 | 39 | `getpid` | none |
 | 60 | `exit` | status |
 | 228 | `clock_gettime` | clock id, `timespec` pointer |
@@ -33,7 +33,7 @@ Lesson 00 used `write` and `exit`. This lesson is every other raw call the drill
 
 ## A missing path is `-ENOENT`
 
-`open` of a path that is not there returns a negative value. It is not a branch you skip. `/no/such/asm_course_file` exits 1 in `03-open-fail.asm` because the test is only `rax < 0`. `05-errno-neg.asm` negates and keeps seven bits. `/nope` is errno 2 (`ENOENT`).
+`open` of a path that is not there returns a negative value. Checking for that failure is not optional. `/no/such/asm_course_file` exits 1 in `03-open-fail.asm` because the test is only `rax < 0`. `05-errno-neg.asm` negates and keeps seven bits. `/nope` is errno 2 (`ENOENT`).
 
 ```asm
 section .data
@@ -46,6 +46,12 @@ _start:
     xor rsi, rsi            ; O_RDONLY
     xor rdx, rdx
     syscall
+    test rax, rax
+    js .failed              ; negative means -errno, not an fd
+    xor rdi, rdi            ; success path: use the fd in rax here
+    mov rax, 60
+    syscall
+.failed:
     neg rax                 ; -errno -> errno
     and rax, 127
     mov rdi, rax            ; 2
@@ -53,9 +59,9 @@ _start:
     syscall
 ```
 
-Opening `"/"` with `O_WRONLY` fails on this machine and `18-error-eacces-sim.asm` exits 1. The prompt says "often". The solution's exit on a failure is 1, not the errno. `24-from-scratch-write-err.asm` writes to fd `-1` and exits 1 because `rax < 0`. A successful `write` of two bytes (`"Z\n"`, `"io\n"`, or `"A\n"` then `"B\n"`) exits 0: `01-write-only.asm`, `07-write-iov-lite.asm`, `09-write-len-check.asm`. Those are two `write` calls, not `writev`. `17-dup-concept.asm` writes `"d\n"` to fd 1 and exits 0. It does not call `dup`.
+Opening `"/"` with `O_WRONLY` fails with `EACCES` (13) and `18-error-eacces-sim.asm` exits 1. The prompt says "often". The solution's exit on a failure is 1, not the errno. `24-from-scratch-write-err.asm` writes to fd `-1` and exits 1 because `rax < 0`. A successful `write` of two bytes (`"Z\n"`, `"io\n"`, or `"A\n"` then `"B\n"`) exits 0: `01-write-only.asm`, `07-write-iov-lite.asm`, `09-write-len-check.asm`. Those are two `write` calls, not `writev`. `17-dup-concept.asm` writes `"d\n"` to fd 1 and exits 0. It does not call `dup`.
 
-`read` of one byte from fd 0 exits that byte when `rax == 1`, and exits 0 when the read is short (`02-read-stdin-one.asm`). With no pipe on stdin the exit is 0.
+`read` of one byte from fd 0 exits that byte when `rax == 1`, and exits 0 when the read is short (`02-read-stdin-one.asm`). When stdin is at end-of-file (no bytes available, e.g. redirected from `/dev/null`), the read returns 0 and the exit is 0. On a terminal, `read` blocks waiting for input instead.
 
 ## `open`, `read`, `close`, `lseek`
 
@@ -87,7 +93,7 @@ _start:
 
 ## Anonymous `mmap`
 
-`mmap` with a null hint asks the kernel for a page. Length 4096, prot 3, flags `0x22`, fd `-1`, offset 0. The address comes back in `rax`. A store through that pointer is ordinary memory. `04-mmap-anon.asm` stores the qword 42 and exits 42.
+`mmap` with a null hint asks the kernel for a page — 4096 bytes on x86-64, the unit the kernel manages memory in. Length 4096, prot 3, flags `0x22`, fd `-1`, offset 0. `MAP_ANONYMOUS` means the mapping is not backed by any file, which is why the fd is `-1` and the offset is 0. The address comes back in `rax`. A store through that pointer is ordinary memory. `04-mmap-anon.asm` stores the byte 42 and exits 42.
 
 ```asm
 section .text
@@ -111,7 +117,7 @@ _start:
 
 ## Calls that are not files
 
-`getpid` (39) has no arguments. `15-getpid.asm` exits `pid & 0x7f`. That status changes from run to run, so this lesson does not claim a number for it. `clock_gettime` (228) with `CLOCK_MONOTONIC` (1) writes two qwords at `rsi` and returns 0 (`16-clock-gettime-stub.asm`). How you turn that into a frame delay is lesson 15. `pipe` (22) writes two fds at `rdi` and returns 0 (`23-stretch-pipe-syscalls.asm`). The solution exits that 0 and does not read either end.
+`getpid` (39) has no arguments. `15-getpid.asm` exits `pid & 0x7f`. That status changes from run to run, so this lesson does not claim a number for it. `clock_gettime` (228) with `CLOCK_MONOTONIC` (1) writes two qwords at `rsi` and returns 0 (`16-clock-gettime-stub.asm`). How you turn that into a frame delay is lesson 15. `pipe` (22) creates a one-way kernel channel and writes its two fds — read end first, then write end — at `rdi`, returning 0 (`23-stretch-pipe-syscalls.asm`). The solution exits that 0 and does not read either end.
 
 ## Exercises
 
