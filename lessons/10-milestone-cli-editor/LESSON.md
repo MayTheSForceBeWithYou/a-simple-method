@@ -5,7 +5,7 @@
 1. Keep a byte buffer, a length, and a cursor, and refuse a cursor past the length.
 2. Insert and delete by sliding bytes, not by hoping the tail moves itself.
 3. Represent the cursor as a gap: free space is `gap_end - gap_start`.
-4. Find a line start by scanning backward for `10`, and kill through that newline.
+4. Find a line start by scanning backward for `10`, and kill the line text up to that newline. The newline stays.
 5. Record dirty, a length prefix, and a magic check. Raw tty is a flag in these drills, not `termios`.
 
 The milestone acceptance in the roadmap is a real editor. These 24 drills are the buffer mechanics that editor is built from. They do not open the tty, and they do not call libc. Parsing a language is lesson 11.
