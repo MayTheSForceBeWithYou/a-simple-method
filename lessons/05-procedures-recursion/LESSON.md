@@ -10,7 +10,7 @@
 
 Deepen call/ret: multiple locals, spilling, recursion depth, mutual recursion, and when a tail call is only a `jmp` you wrote yourself.
 
-Lesson 04 already set the ABI, prologue, and a first factorial. This lesson is the frame you keep getting wrong under a second call.
+Lesson 04 already set the ABI and prologue. This lesson is the frame you keep getting wrong under a second call.
 
 ## Multi-local frames
 
