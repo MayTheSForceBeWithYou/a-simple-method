@@ -1,4 +1,4 @@
-# Lesson 13 — FP, SIMD, Fixed-point
+# Lesson 13 — Fixed-point arithmetic
 
 ## Learning objectives
 
