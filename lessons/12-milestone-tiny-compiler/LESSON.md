@@ -8,7 +8,7 @@
 4. Assign locals by incrementing a slot counter and call a function for its return value.
 5. Keep an ELF size and a symbol address as data. These drills do not write an object file.
 
-The roadmap's compiler emits a runnable ELF. These 24 files are the folds, the scan, and one bytecode loop. They do not print NASM, and they do not write ELF bytes. Floating point is lesson 13.
+The roadmap's compiler emits a runnable ELF. These 24 files are the folds, the scan, one bytecode loop, and slots, types, and ELF bookkeeping kept as data. They do not print NASM, and they do not write ELF bytes. Floating point is lesson 13.
 
 ## Scan
 
@@ -122,4 +122,4 @@ Each local increments `next_slot`. Three locals exit 3 (`15-local-slot-alloc.asm
 
 24 drills under `exercises/`. Solutions mirror the names in `solutions/`. Build with `nasm -f elf64 FILE -o /tmp/o.o && ld /tmp/o.o -o /tmp/p && /tmp/p; echo $?`.
 
-Scan: `02-lex-ident.asm`, `03-parse-let.asm` (first letter only), `09-lex-number.asm`, `10-lex-ident-len.asm`, `20-type-check-int.asm`. Fold and control: `04-codegen-add.asm`, `08-from-scratch-const-fold.asm`, `11-parse-binop.asm`, `12-parse-paren.asm`, `16-if-codegen.asm`, `17-while-codegen.asm`, `18-call-codegen.asm`, `21-debug-fold-bug.asm` (exit 10), `24-from-scratch-compile-add.asm`. Bytes and slots: `01-emit-mov-imm.asm`, `05-bytecode-interp.asm` (exit 9), `06-symbol-slot.asm`, `07-emit-syscall-exit.asm`, `13-codegen-mov.asm`, `14-codegen-add-regs.asm`, `15-local-slot-alloc.asm`, `19-bytecode-jump.asm` (exit 5), `22-stretch-emit-elf-note.asm` (exit 64, no ELF), `23-stretch-symbol-resolve.asm`.
+Scan: `02-lex-ident.asm`, `03-parse-let.asm` (first letter only), `09-lex-number.asm`, `10-lex-ident-len.asm`. Fold and control: `04-codegen-add.asm`, `08-from-scratch-const-fold.asm`, `11-parse-binop.asm`, `12-parse-paren.asm`, `16-if-codegen.asm`, `17-while-codegen.asm`, `18-call-codegen.asm`, `21-debug-fold-bug.asm` (exit 10), `24-from-scratch-compile-add.asm`. Bytes and slots: `01-emit-mov-imm.asm`, `05-bytecode-interp.asm` (exit 9), `06-symbol-slot.asm`, `07-emit-syscall-exit.asm`, `13-codegen-mov.asm`, `14-codegen-add-regs.asm`, `15-local-slot-alloc.asm`, `19-bytecode-jump.asm` (exit 5), `20-type-check-int.asm`, `22-stretch-emit-elf-note.asm` (exit 64, no ELF), `23-stretch-symbol-resolve.asm`.
