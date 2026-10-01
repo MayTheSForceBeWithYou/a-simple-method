@@ -12,7 +12,7 @@ Lesson 06 indexed bytes. This lesson changes the bits inside a register. File I/
 
 ## Masks
 
-`and` keeps the bits set in both operands. `or` sets bits. `xor` toggles bits that are set in the second operand. `not` flips every bit of one operand. `test` is still `and` that only writes flags, from lesson 02.
+`and` keeps the bits set in both operands. `or` sets bits. `xor` toggles bits that are set in the second operand. `not` flips every bit of one operand but affects no flags. `test` is still `and` that only writes flags, from lesson 02.
 
 ```asm
 section .text
@@ -40,7 +40,9 @@ That is `01-and-mask.asm`. `02-or-flags.asm` is packing two booleans, not RFLAGS
 | `sar r, n` | copy of the sign bit | signed divide, toward −∞ |
 | `rol` / `ror` | the bit that left the other end | rotate, not a divide |
 
-`shl rax, 3` on 3 exits 24 (`04-shl-mul.asm`). A mask of width 5 is `(1<<5)-1` = 31 (`18-mask-range.asm`). `n ^ (n>>1)` is binary-to-Gray (`21-gray-code.asm`: 7 exits 4).
+The count is an 8-bit immediate, or `cl` — a count in any other register or in memory is not encodable.
+
+`shl rax, 3` on 3 exits 24 (`04-shl-mul.asm`). A mask of width 5 is `(1<<5)-1` = 31 (`18-mask-range.asm`). `n ^ (n>>1)` is binary-to-Gray (`21-gray-code.asm`: 7 exits 4). Flag effects: `shl`, `shr`, and `sar` put the last bit shifted out into CF; OF is defined only for 1-bit shifts and undefined otherwise; SF, ZF, and PF follow the result; AF is undefined.
 
 ## `sar` keeps the sign
 
@@ -90,17 +92,17 @@ _start:
     syscall
 ```
 
-That is `15-bitfield-pack.asm`. The mask before the shift stops a 5 from occupying `b`'s bits. `16-bitfield-unpack.asm` takes `0b01010101`, shifts right by 3, masks with 7, and exits 2. The prompt writes the same bits as `0b01_010_101`. NASM does not want the underscores; the solution immediate is `0b01010101`. `07-extract-bitfield.asm` is `(0xABCD >> 4) & 0xF` = 12. `(0xA << 4) | 0xB` exits 171 (`13-shl-shl-combine.asm`).
+That is `15-bitfield-pack.asm`. The mask before the shift keeps a value that is too wide from occupying the next field's bits. `16-bitfield-unpack.asm` takes `0b01010101`, shifts right by 3, masks with 7, and exits 2. The prompt writes the same bits as `0b01_010_101`, and NASM accepts the underscores — they have been allowed in numeric literals since NASM 2.00 (§3.4.1). The solution immediate is `0b01010101`. `07-extract-bitfield.asm` is `(0xABCD >> 4) & 0xF` = 12. `(0xA << 4) | 0xB` exits 171 (`13-shl-shl-combine.asm`).
 
 ## Rotate, do not drop the bit
 
-`rol al, 1` on `0x80` exits 1 (`08-from-scratch-rol.asm`). The file name says from scratch. The solution is the `rol` instruction. `ror al, 1` on `0x01` exits 128 (`17-rotate-parity.asm`). The prompt's longer parity count is not what the solution does.
+`rol al, 1` on `0x80` exits 1 (`08-from-scratch-rol.asm`). The file name says from scratch. The solution is the `rol` instruction. `ror al, 1` on `0x01` exits 128 (`17-rotate-parity.asm`). The prompt's longer parity count is not what the solution does. Flag effects: `rol` and `ror` update CF and OF — OF is defined only for 1-bit rotates — and leave the other flags unchanged.
 
 A loop that pulls bit 0 into a new register reverses an 8-bit value (`23-stretch-bit-reverse8.asm`: `0b10000000` exits 1). `rol` eight times is not that reversal unless you insert the outgoing bit at the other end of a second register.
 
 ## Counting loops
 
-Popcount shifts until the register is zero and adds the bit in bit 0 (`06-popcount-naive.asm`: `0b101101` exits 4). Trailing zeros are how many shifts happen before bit 0 is set (`24-from-scratch-ntz.asm`: `0b1011000` exits 3). Leading zeros in a 16-bit lane shift the other way: `0x00F0` exits 8 (`20-count-leading-zeros-loop.asm`). A zero input is 16 leading zeros, not an infinite loop. The word lives in `.data` as `dw 0x00F0`, and the count is on `ax` after `movzx`, not on a 64-bit sign.
+Popcount shifts until the register is zero and adds the bit in bit 0 (`06-popcount-naive.asm`: `0b101101` exits 4). Trailing zeros are how many shifts happen before bit 0 is set (`24-from-scratch-ntz.asm`: `0b1011000` exits 3). Leading zeros in a 16-bit lane shift the other way: `0x00F0` exits 8 (`20-count-leading-zeros-loop.asm`). A zero input is 16 leading zeros, not an infinite loop. The word lives in `.data` as `dw 0x00F0`, and the count is on `ax` after `movzx`, not on a 64-bit register.
 
 ## Exercises
 
