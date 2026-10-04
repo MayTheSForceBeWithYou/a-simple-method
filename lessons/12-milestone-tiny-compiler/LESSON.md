@@ -40,6 +40,24 @@ _start:
 
 That is `09-lex-number.asm`. One digit in lesson 11 was a single `sub`. This loop is the multi-digit form.
 
+## The grammar
+
+The drills scan and fold a tiny language. Here it is, all of it:
+
+```
+program    := stmt*
+stmt       := let_stmt | while_stmt | expr
+let_stmt   := "let" ident "=" expr
+while_stmt := "while" expr "do" stmt
+expr       := term ("+" term)*
+term       := factor ("*" factor)*
+factor     := number | ident | "(" expr ")" | if_expr | call
+if_expr    := "if" expr "then" expr "else" expr
+call       := ident "(" [expr ("," expr)*] ")"
+```
+
+Precedence falls out of the layering: `term` binds tighter than `expr`, so `2*3+4` is `(2*3)+4` — the fix `21-debug-fold-bug.asm` applies. Parentheses reset to `expr`, so `(1+2)*3` is 9. A keyword is the whole word: `03-parse-let.asm` compares one byte and is not a keyword test. The grammar needs all three of `l`, `e`, `t` before `let` means anything, which is why `lxxx` must fail.
+
 ## Fold
 
 `2+3` exits 5 (`04-codegen-add.asm`, `11-parse-binop.asm`). `(1+2)*3` adds first, then multiplies, and exits 9 (`08-from-scratch-const-fold.asm`, `12-parse-paren.asm`). `40+2` exits 42 (`24-from-scratch-compile-add.asm`).
@@ -117,6 +135,19 @@ The load of 99 never runs. Exit 5. Add is opcode 2 in the other drill. This list
 ## Slots, types, ELF
 
 Each local increments `next_slot`. Three locals exit 3 (`15-local-slot-alloc.asm`). Slot 0 holding 42 exits 42 (`06-symbol-slot.asm`). A resolved address of `0x20` exits 32 (`23-stretch-symbol-resolve.asm`). The integer type tag is 1 (`20-type-check-int.asm`). An ELF header is 64 bytes. `22-stretch-emit-elf-note.asm` exits 64. It does not emit `e_ident`, a program header, or a single instruction byte. When you do emit bytes later, you still assemble or load them outside this drill.
+
+## Acceptance criteria
+
+The milestone is one compiler binary (lesson 09's multi-file build). It is done when:
+
+1. `let x = 2*3+4` folds to 10: `*` binds tighter than `+`.
+2. `(1+2)*3` folds to 9: parentheses reset precedence.
+3. `lxxx` is rejected as a keyword: the whole word `let` must match.
+4. The bytecode loop runs `1, 4, 1, 5, 2, 0` and exits 9.
+5. Three locals take slots 0, 1, 2; a call exits its return value.
+6. An `if` with a nonzero condition takes the then-value; a `while` with `i < 3` exits 3.
+
+Floating point is lesson 13. ELF emission stays a stretch until the bytes are really written.
 
 ## Exercises
 
