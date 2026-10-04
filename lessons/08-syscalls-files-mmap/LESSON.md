@@ -2,7 +2,7 @@
 
 ## Learning objectives
 
-1. Call `read`, `write`, `open`, `close`, and `lseek` with the Linux argument registers.
+1. Call `read`, `write`, `open`, `close`, and `lseek` with the Linux argument registers. Create and truncate files with `O_CREAT`/`O_TRUNC` and mode bits.
 2. Treat a negative `rax` as `-errno`, not as a file descriptor.
 3. Map an anonymous page with `mmap` and release it with `munmap`.
 4. Call `brk`, `getpid`, `clock_gettime`, and `pipe` directly, without inventing a libc wrapper.
@@ -90,6 +90,38 @@ _start:
     mov rax, 60
     syscall
 ```
+
+## Creating and truncating files
+
+`open`'s second argument is flags, and two flags change what `open` does to the path itself. `O_CREAT` (64) creates the file when it is not there. `O_TRUNC` (512) empties it when it is. To start a fresh save file you want all three: `O_WRONLY|O_CREAT|O_TRUNC` = 1|64|512 = 577. The third argument, `mode`, matters only with `O_CREAT`: it is the permission bits, `0644` octal = 420, owner read/write and everyone else read-only. The kernel masks it with your umask; `0644` is the conventional choice.
+
+This is the first real persistent write in the course: the bytes stay after the process exits. Lesson 14's PPM output and lesson 18's save are both this pattern.
+
+```asm
+section .data
+    path db "save.bin", 0
+    data db 1, 2, 3, 4
+section .text
+global _start
+_start:
+    mov rax, 2                  ; open
+    lea rdi, [path]
+    mov rsi, 577                ; O_WRONLY|O_CREAT|O_TRUNC
+    mov rdx, 420                ; 0644
+    syscall
+    mov rdi, rax                ; fd
+    mov rax, 1                  ; write
+    lea rsi, [data]
+    mov rdx, 4
+    syscall                     ; rax = 4
+    mov rax, 3                  ; close; rdi still holds the fd
+    syscall
+    xor rdi, rdi
+    mov rax, 60
+    syscall
+```
+
+`syscall` clobbers only `rcx` and `r11` (and `rax`, the return), so `rdi` still holds the fd at `close`. A real program checks `rax < 0` after `open` the way the `-ENOENT` section does; the check is omitted here to keep the pattern readable.
 
 ## Anonymous `mmap`
 
