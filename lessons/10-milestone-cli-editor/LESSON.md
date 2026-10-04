@@ -6,7 +6,7 @@
 2. Insert and delete by sliding bytes, not by hoping the tail moves itself.
 3. Represent the cursor as a gap: free space is `gap_end - gap_start`.
 4. Find a line start by scanning backward for `10`, and kill the line text up to that newline. The newline stays.
-5. Record dirty, a length prefix, and a magic check. Raw tty is a flag in these drills, not `termios`.
+5. Record dirty, a length prefix, and a magic check. Flip a real tty to raw mode with `termios`; the drills model it as a flag.
 
 The milestone acceptance in the roadmap is a real editor. These 24 drills are the buffer mechanics that editor is built from. They do not open the tty, and they do not call libc. Parsing a language is lesson 11.
 
@@ -106,7 +106,52 @@ _start:
     syscall
 ```
 
-Undo pushes opcodes 1 then 2. One pop leaves 1 at the new top (`22-stretch-undo-stack.asm`). The popped value is 2. The exit is the value still on the stack. A status line that is only the length exits 12 (`18-status-line-len.asm`). `23-stretch-raw-mode-flag.asm` sets a byte and clears it, then exits 0. It does not call `ioctl` or `tcsetattr`. The roadmap allows a thin libc later for the real tty. These drills are not that program.
+Undo pushes opcodes 1 then 2. One pop leaves 1 at the new top (`22-stretch-undo-stack.asm`). The popped value is 2. The exit is the value still on the stack. A status line that is only the length exits 12 (`18-status-line-len.asm`). `23-stretch-raw-mode-flag.asm` sets a byte and clears it, then exits 0. It models the bit-clear below as a flag. The roadmap allows a thin libc later for the real tty. These drills are not that program.
+
+## Raw mode: what the tty really needs
+
+A terminal in canonical mode cooks input: bytes arrive only after Enter, and the tty echoes them itself. A real editor needs the opposite: every keypress immediately, no echo. That is raw mode, and on Linux it is a `termios` structure flipped with `ioctl` (16), a call this course has not used until now.
+
+`struct termios` is 60 bytes. `c_lflag` sits at offset 12. Two bits matter here: `ICANON` (0x2, canonical mode) and `ECHO` (0x8, echo). `TCGETS` (0x5401) reads the structure, you clear the two bits, `TCSETS` (0x5402) writes it back:
+
+```asm
+section .bss
+    tio resb 60
+section .text
+global _start
+_start:
+    mov rax, 16                 ; ioctl
+    xor rdi, rdi                ; fd 0
+    mov rsi, 0x5401             ; TCGETS
+    lea rdx, [tio]
+    syscall
+    mov eax, [tio+12]           ; c_lflag
+    and eax, ~0xA               ; clear ICANON|ECHO, keep the rest
+    mov [tio+12], eax
+    mov rax, 16
+    xor rdi, rdi
+    mov rsi, 0x5402             ; TCSETS
+    lea rdx, [tio]
+    syscall                     ; rax = 0
+    xor rdi, rdi
+    mov rax, 60
+    syscall
+```
+
+`~0xA` keeps every flag except the two being cleared. A real editor restores the old flags on exit; a program that forgets leaves the terminal unusable until `reset`. Until the milestone binary flips the tty itself, the drills keep the flag.
+
+## Acceptance criteria
+
+The milestone is one editor binary built from these drills' patterns (lesson 09's multi-file build). It is done when:
+
+1. It opens a text file (or starts empty), shows it, and quits on a defined key without losing the buffer.
+2. The cursor never leaves `0..len`: every move and edit keeps the clamp from `21-debug-cursor-oob.asm`.
+3. Kill-line removes the line's text and leaves the newline, per objective 4.
+4. Save writes the length-prefixed image with magic `"ED01"`; loading a file with a bad magic is rejected.
+5. The dirty flag is set by any edit and cleared only by a save.
+6. The viewport renders with `write`, one screenful at a time. No libc, no `mmap` of the tty.
+
+Raw mode above is what makes criterion 1's "accepts keypresses" real.
 
 ## Exercises
 
