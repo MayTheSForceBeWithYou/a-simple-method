@@ -2,13 +2,38 @@
 
 ## Learning objectives
 
-1. Store a path cell at `y * width + x` and read the byte back, not the index.
-2. Clamp a coordinate to `width - 1` before it becomes an index.
-3. Rotate a piece direction with `inc` and `and 3`.
-4. Add ticket cash and subtract upkeep on the same qword.
-5. Recognize a save magic byte and a version of 1. These drills do not write a file.
+1. Clamp every map index to the map bounds before it becomes an address.
+2. Place at least three track piece types and connect pieces by matching directions.
+3. Step one agent along a BFS parent walk, one tile per tick.
+4. Tick cash and upkeep on a single qword that never goes negative.
+5. Save and load the map with `open`/`write`/`read`/`close`, checked by magic and version.
 
-The roadmap's capstone places track, walks an agent, ticks an economy, and round-trips a map. These 24 files are the cells and the counters that sim is made of. They do not pathfind, and they do not call `open`. Use your own names. Do not copy a commercial park game's text, assets, or data.
+The capstone is one program, not 24 drills. The drills below are its cells, counters, and file format; the milestone is the integrated binary in Acceptance criteria. Use your own names. Do not copy a commercial park game's text, assets, or data.
+
+## Acceptance criteria
+
+The park is done when all six hold:
+
+1. `make` builds one binary from at least three `.asm` files, sharing symbols with `global`/`extern` (lesson 09). The link has no undefined symbols.
+2. The binary places at least three track piece types — straight, curve, station — and reading back each placed cell returns the type stored.
+3. An agent reaches its goal: BFS (lesson 17) runs over the path cells each tick, the agent steps one tile along the parent walk per tick, and the goal tile is reached inside the tick budget.
+4. 100 ticks run with cash never negative: upkeep is subtracted only when the qword covers it.
+5. The save file starts with magic `"PK01"` and version dword `1`, then the map bytes. The loader accepts that file and rejects a bad magic and a wrong version.
+6. The run leaves a `.ppm` file rendering the final map (lesson 14). The sim has visible state.
+
+## One binary from many files
+
+Lesson 09's `global`/`extern` is how the capstone stops being 24 separate `_start`s. `map.asm` exposes `map_place`, `econ.asm` exposes `econ_tick`, `save.asm` exposes `save_game`, and `main.asm` calls them and owns the only `_start`. A `Makefile` assembles each file once and links the objects:
+
+```make
+park: main.o map.o econ.o save.o
+	ld -o park main.o map.o econ.o save.o
+
+%.o: %.asm
+	nasm -f elf64 $< -o $@
+```
+
+`$@` is the target, `$<` the first prerequisite. Criterion 1 is the link: one binary, no undefined symbols. The drills stay single-file so each stays hand-traceable; the program is the composition.
 
 ## The map
 
@@ -52,9 +77,9 @@ _start:
 
 That is `19-debug-map-bounds.asm`. `jl` keeps an x that is already inside. Do not `and` with 255 and call it a clamp.
 
-## Pieces and agents
+## Pieces
 
-A direction lives in `0..3`. Increment, then `and` with 3. From 3 the next value is 0 (`11-track-piece-rotate.asm`).
+Three piece types, each one byte in the cell: 1 is straight, 2 is curve, 3 is station. `02-place-track.asm` stores the type byte and exits the type: placing a station exits 3. A direction lives in `0..3`. Increment, then `and` with 3. From 3 the next value is 0 (`11-track-piece-rotate.asm`).
 
 ```asm
 section .bss
@@ -70,20 +95,63 @@ _start:
     syscall
 ```
 
-Piece type 3 is the constant 3 (`02-place-track.asm`). Two pieces "connecting" exits the constant 1 (`12-track-connect.asm`). It does not compare directions. Steps remaining 4 is the constant 4 (`13-peep-pathfind-step.asm`). There is no grid walk. One agent step increments x from zero and exits 1 (`04-agent-step.asm`). A ride-open flag exits 1 (`06-ride-open.asm`). A queue length of 7 is stored and exited (`14-ride-queue-len.asm`). An excitement value of 42 is the constant 42 (`22-stretch-coaster-excitement.asm`). A net tick id of 2 is local data (`23-stretch-multiplayer-stub.asm`). It is not a socket.
+Two adjacent pieces connect when one's exit direction is the other's entry: `dir[a] == (dir[b] + 2) & 3`. Piece A faces east (1), piece B sits east of A facing west (3): `(3 + 2) & 3` is 1, so `12-track-connect.asm` exits 1. It compares; the old constant did not. A ride-open flag exits 1 (`06-ride-open.asm`). A queue length of 7 is stored and exited (`14-ride-queue-len.asm`). Excitement is `airtime * 3 + length`: 10 and 12 exit 42 (`22-stretch-coaster-excitement.asm`). A net tick id of 2 is local data (`23-stretch-multiplayer-stub.asm`). It is not a socket.
+
+## Agents walk the BFS
+
+Lesson 17's BFS runs on the park's path cells: queue, visited-at-enqueue, `parent[next] = current`, walls from lesson 16's solid flags. Each tick the agent takes one step along the parent walk: `pos = parent[pos]`. Agent at tile 5 with `parent[5] = 2` moves to 2 and exits 2 (`13-peep-pathfind-step.asm`). One agent step from tile 0 to tile 1 exits 1 (`04-agent-step.asm`). No constant is a search: the parent array is walked, not asserted.
 
 ## Economy and the tick
 
-Cash is a qword in `.bss`, so it starts at 0. Adding 5 exits 5 (`03-econ-tick.asm`). Adding a ticket of 15 exits 15 (`15-econ-ticket.asm`). Upkeep subtracts 3 from 10 and exits 7 (`16-econ-upkeep.asm`). Subtract after you know the qword is not still zero, or the cash goes negative and the exit status is not 7.
+Cash is a qword in `.bss`, so it starts at 0. Adding 5 exits 5 (`03-econ-tick.asm`). Adding a ticket of 15 exits 15 (`15-econ-ticket.asm`). Upkeep subtracts 3 from 10 and exits 7 (`16-econ-upkeep.asm`). Subtract after you know the qword is not still zero, or the cash goes negative and the exit status is not 7 — criterion 4 is this guard, every tick.
 
-A tick loop increments until the counter is 5 and exits 5 (`08-from-scratch-tick.asm`). One integrated tick writes a path byte, increments the agent, increments cash, and exits the cash, which is 1 (`24-from-scratch-sim-integrate.asm`). Happiness 120 compared against 100 exits 100 (`07-peep-happy.asm`). Guests of exactly 100 meet a `>= 100` goal because the reject branch is `jl`, and 100 is not less. Exit 1 (`21-scenario-goal.asm`). Rain 3 incremented and masked with 3 exits 0 (`20-weather-tick.asm`). Same wrap as the piece direction.
+A tick loop increments until the counter is 5 and exits 5 (`08-from-scratch-tick.asm`). One integrated tick writes a path byte, steps the agent along the parent walk, ticks cash, and exits the cash, which is 1 (`24-from-scratch-sim-integrate.asm`). Happiness 120 compared against 100 exits 100 (`07-peep-happy.asm`). Guests of exactly 100 meet a `>= 100` goal because the reject branch is `jl`, and 100 is not less. Exit 1 (`21-scenario-goal.asm`). Rain 3 incremented and masked with 3 exits 0 (`20-weather-tick.asm`). Same wrap as the piece direction.
 
-## Save
+## Save and load
 
-`"PK01"` 's first byte is `'P'`, 80 (`05-save-magic.asm`). A header of magic plus version is described as 8 bytes. `17-save-header.asm` exits 8 and does not store those bytes and does not `write`. Version 1 compared equal exits 1 (`18-load-version-check.asm`). A load that accepts any version is not this check. When you do write the map, lesson 08's `open` / `write` / `close` is the path. This file does not open one.
+The save format is an 8-byte header — magic `"PK01"` (4 bytes) then version dword `1` (4 bytes) — followed by the map bytes. Writing it is lesson 08's create pattern: `open` with `O_WRONLY|O_CREAT|O_TRUNC` = 577 and mode `0644` = 420, `write` the header, `write` the map, `close`.
+
+```asm
+section .data
+    path db "park.sav", 0
+    hdr  db "PK01"
+    ver  dd 1                 ; header is 8 bytes total
+section .bss
+    map resb 64
+section .text
+global _start
+_start:
+    mov rax, 2               ; open
+    lea rdi, [path]
+    mov rsi, 577             ; O_WRONLY|O_CREAT|O_TRUNC
+    mov rdx, 420             ; 0644
+    syscall
+    mov rbx, rax             ; fd
+    mov rax, 1               ; write
+    mov rdi, rbx
+    lea rsi, [hdr]           ; "PK01" + version dword
+    mov rdx, 8
+    syscall                  ; rax = 8
+    mov rax, 1               ; write
+    mov rdi, rbx
+    lea rsi, [map]
+    mov rdx, 64
+    syscall
+    mov rax, 3               ; close
+    syscall
+    xor rdi, rdi
+    mov rax, 60
+    syscall
+```
+
+`17-save-header.asm` is the first `write`: it exits the byte count, 8. The magic's first byte is `'P'`, 80 (`05-save-magic.asm`). Loading reads the header back and checks both fields: version 1 compared equal exits 1, and any other version is rejected (`18-load-version-check.asm`). A load that accepts any version is not this check.
+
+## Visible state
+
+After the run, the map is rendered to a P6 file (lesson 14): each cell byte becomes one RGB triple — empty is black, path is green, straight is brown, curve is orange, station is white — written with the same `open`/`write`/`close` as the save. Criterion 6 is that file: open it in a viewer and the park is there. The sim never touches `/dev/fb0`; the file is the screen.
 
 ## Exercises
 
-24 drills under `exercises/`. Solutions mirror the names in `solutions/`. Build with `nasm -f elf64 FILE -o /tmp/o.o && ld /tmp/o.o -o /tmp/p && /tmp/p; echo $?`.
+24 drills under `exercises/`. Solutions mirror the names in `solutions/`. Build with `nasm -f elf64 FILE -o /tmp/o.o && ld /tmp/o.o -o /tmp/p && /tmp/p; echo $?`. The integrated binary in Acceptance criteria composes these drills' patterns across files (lesson 09).
 
-Map: `01-map-cell.asm`, `09-map-place-path.asm` (exit 1, index 26), `10-map-erase.asm`, `19-debug-map-bounds.asm` (exit 7). Pieces and agents: `02-place-track.asm` (constant 3), `04-agent-step.asm` (exit 1), `06-ride-open.asm`, `11-track-piece-rotate.asm`, `12-track-connect.asm` (constant 1), `13-peep-pathfind-step.asm` (constant 4), `14-ride-queue-len.asm`, `22-stretch-coaster-excitement.asm` (constant 42), `23-stretch-multiplayer-stub.asm`. Economy and time: `03-econ-tick.asm`, `07-peep-happy.asm` (exit 100), `08-from-scratch-tick.asm`, `15-econ-ticket.asm`, `16-econ-upkeep.asm` (exit 7), `20-weather-tick.asm`, `21-scenario-goal.asm`, `24-from-scratch-sim-integrate.asm` (exit 1). Save: `05-save-magic.asm` (exit 80), `17-save-header.asm` (constant 8, no `write`), `18-load-version-check.asm`.
+Map: `01-map-cell.asm` (exit 1), `09-map-place-path.asm` (exit 1, index 26), `10-map-erase.asm` (exit 0), `19-debug-map-bounds.asm` (exit 7). Pieces and agents: `02-place-track.asm` (exit 3, the type), `04-agent-step.asm` (exit 1), `06-ride-open.asm` (exit 1), `11-track-piece-rotate.asm` (exit 0), `12-track-connect.asm` (exit 1), `13-peep-pathfind-step.asm` (exit 2), `14-ride-queue-len.asm` (exit 7), `22-stretch-coaster-excitement.asm` (exit 42), `23-stretch-multiplayer-stub.asm` (no socket). Economy and time: `03-econ-tick.asm` (exit 5), `07-peep-happy.asm` (exit 100), `08-from-scratch-tick.asm` (exit 5), `15-econ-ticket.asm` (exit 15), `16-econ-upkeep.asm` (exit 7), `20-weather-tick.asm` (exit 0), `21-scenario-goal.asm` (exit 1), `24-from-scratch-sim-integrate.asm` (exit 1). Save: `05-save-magic.asm` (exit 80), `17-save-header.asm` (exit 8), `18-load-version-check.asm` (exit 1).
