@@ -5,3 +5,14 @@
 ; Build: nasm -f elf64 06-prologue-locals.asm -o /tmp/o.o && ld /tmp/o.o -o /tmp/p && /tmp/p; echo $?
 ;
 ; --- your code below ---
+section .text
+    global _start
+_start:
+    mov rdi, 41
+    call inc_local
+    mov rdi, rax
+    mov rax, 60
+    syscall
+
+inc_local:
+    ; TODO: implement inc_local

@@ -5,3 +5,19 @@
 ; Build: nasm -f elf64 21-abi-quiz-exit.asm -o /tmp/o.o && ld /tmp/o.o -o /tmp/p && /tmp/p; echo $?
 ;
 ; --- your code below ---
+section .text
+    global _start
+_start:
+    mov rdi, 1
+    mov rsi, 2
+    mov rdx, 3
+    mov rcx, 4
+    mov r8, 5
+    mov r9, 6
+    call identity6
+    mov rdi, rax
+    mov rax, 60
+    syscall
+
+identity6:
+    ; TODO: implement identity6

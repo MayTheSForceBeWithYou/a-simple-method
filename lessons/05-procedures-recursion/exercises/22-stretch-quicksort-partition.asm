@@ -5,3 +5,17 @@
 ; Build: nasm -f elf64 22-stretch-quicksort-partition.asm -o /tmp/o.o && ld /tmp/o.o -o /tmp/p && /tmp/p; echo $?
 ;
 ; --- your code below ---
+section .data
+    arr dq 1,5,2,4
+section .text
+    global _start
+_start:
+    lea rdi, [arr]
+    xor rsi, rsi
+    mov rdx, 3
+    call partition
+    mov rdi, rax
+    mov rax, 60
+    syscall
+partition:
+    ; TODO: implement partition

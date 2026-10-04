@@ -5,3 +5,17 @@
 ; Build: nasm -f elf64 13-variadic-max.asm -o /tmp/o.o && ld /tmp/o.o -o /tmp/p && /tmp/p; echo $?
 ;
 ; --- your code below ---
+section .text
+    global _start
+_start:
+    push 9
+    push 1
+    push 5
+    mov rdi, 3
+    call max_n
+    add rsp, 24
+    mov rdi, rax
+    mov rax, 60
+    syscall
+max_n:
+    ; TODO: implement max_n

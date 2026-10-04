@@ -5,3 +5,15 @@
 ; Build: nasm -f elf64 14-mutual-parity-count.asm -o /tmp/o.o && ld /tmp/o.o -o /tmp/p && /tmp/p; echo $?
 ;
 ; --- your code below ---
+section .text
+    global _start
+_start:
+    mov rdi, 6
+    call is_even
+    mov rdi, rax
+    mov rax, 60
+    syscall
+is_even:
+    ; TODO: implement is_even
+is_odd:
+    ; TODO: implement is_odd

@@ -5,3 +5,19 @@
 ; Build: nasm -f elf64 26-print-via-helper.asm -o /tmp/o.o && ld /tmp/o.o -o /tmp/p && /tmp/p
 ;
 ; --- your code below ---
+section .data
+    msg db "abi", 10
+    msg_len equ $ - msg
+
+section .text
+    global _start
+_start:
+    lea rsi, [msg]
+    mov rdx, msg_len
+    call write_str
+    mov rax, 60
+    xor rdi, rdi
+    syscall
+
+write_str:
+    ; TODO: implement write_str

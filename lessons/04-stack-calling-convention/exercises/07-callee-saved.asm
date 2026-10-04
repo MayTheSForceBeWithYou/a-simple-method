@@ -5,3 +5,14 @@
 ; Build: nasm -f elf64 07-callee-saved.asm -o /tmp/o.o && ld /tmp/o.o -o /tmp/p && /tmp/p; echo $?
 ;
 ; --- your code below ---
+section .text
+    global _start
+_start:
+    mov rbx, 9
+    call clobber_careful
+    mov rdi, rbx
+    mov rax, 60
+    syscall
+
+clobber_careful:
+    ; TODO: implement clobber_careful
