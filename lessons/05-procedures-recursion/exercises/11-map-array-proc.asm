@@ -5,3 +5,19 @@
 ; Build: nasm -f elf64 11-map-array-proc.asm -o /tmp/o.o && ld /tmp/o.o -o /tmp/p && /tmp/p; echo $?
 ;
 ; --- your code below ---
+section .data
+    arr dq 1,2,3,4
+section .text
+    global _start
+_start:
+    lea rdi, [arr]
+    mov rsi, 4
+    call map_inc
+    mov rdi, [arr]
+    add rdi, [arr+8]
+    add rdi, [arr+16]
+    add rdi, [arr+24]
+    mov rax, 60
+    syscall
+map_inc:
+    ; TODO: implement map_inc

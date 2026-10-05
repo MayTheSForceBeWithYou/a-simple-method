@@ -5,3 +5,15 @@
 ; Build: nasm -f elf64 03-add-two-args.asm -o /tmp/o.o && ld /tmp/o.o -o /tmp/p && /tmp/p; echo $?
 ;
 ; --- your code below ---
+section .text
+    global _start
+_start:
+    mov rdi, 10
+    mov rsi, 32
+    call add2
+    mov rdi, rax
+    mov rax, 60
+    syscall
+
+add2:
+    ; TODO: implement add2

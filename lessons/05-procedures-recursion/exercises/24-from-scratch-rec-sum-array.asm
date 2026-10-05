@@ -5,3 +5,16 @@
 ; Build: nasm -f elf64 24-from-scratch-rec-sum-array.asm -o /tmp/o.o && ld /tmp/o.o -o /tmp/p && /tmp/p; echo $?
 ;
 ; --- your code below ---
+section .data
+    arr dq 2,3,4
+section .text
+    global _start
+_start:
+    lea rdi, [arr]
+    mov rsi, 3
+    call rec_sum
+    mov rdi, rax
+    mov rax, 60
+    syscall
+rec_sum:
+    ; TODO: implement rec_sum

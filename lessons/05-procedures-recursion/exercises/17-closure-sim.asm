@@ -5,3 +5,16 @@
 ; Build: nasm -f elf64 17-closure-sim.asm -o /tmp/o.o && ld /tmp/o.o -o /tmp/p && /tmp/p; echo $?
 ;
 ; --- your code below ---
+section .data
+    ctx dq 10
+section .text
+    global _start
+_start:
+    lea r12, [ctx]
+    mov rdi, 5
+    call add_ctx
+    mov rdi, rax
+    mov rax, 60
+    syscall
+add_ctx:
+    ; TODO: implement add_ctx

@@ -5,3 +5,20 @@
 ; Build: nasm -f elf64 13-align-before-call.asm -o /tmp/o.o && ld /tmp/o.o -o /tmp/p && /tmp/p; echo $?
 ;
 ; --- your code below ---
+section .text
+    global _start
+_start:
+    ; make sure we call with aligned stack: rsp % 16 == 0 before call
+    mov rax, rsp
+    and rax, 15
+    cmp rax, 0
+    je .aligned
+    push rax               ; adjust by 8 if needed
+.aligned:
+    call check
+    mov rdi, rax
+    mov rax, 60
+    syscall
+
+check:
+    ; TODO: implement check

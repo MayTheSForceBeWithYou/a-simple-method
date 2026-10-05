@@ -48,6 +48,9 @@ _start:
     mov rdx, 1
     syscall                   ; rax = 1, [key] = the byte
 .nokey:
+    mov rdi, 0                ; exit status 0
+    mov rax, 60               ; sys_exit
+    syscall
 ```
 
 Timeout 0 makes `poll` a pure status check: the loop never stalls on input. Compare `[key]` to `'W'` exactly the way `01-keymap.asm` compares the immediate. The terminal still cooks input (canonical mode) until something puts it in raw mode; lesson 10 left raw mode as a flag, so these drills receive one line per Enter press and say so in their headers.

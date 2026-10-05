@@ -5,3 +5,15 @@
 ; Build: nasm -f elf64 15-rec-strlen.asm -o /tmp/o.o && ld /tmp/o.o -o /tmp/p && /tmp/p; echo $?
 ;
 ; --- your code below ---
+section .data
+    s db "abcd",0
+section .text
+    global _start
+_start:
+    lea rdi, [s]
+    call rstrlen
+    mov rdi, rax
+    mov rax, 60
+    syscall
+rstrlen:
+    ; TODO: implement rstrlen

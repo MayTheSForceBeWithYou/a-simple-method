@@ -5,3 +5,14 @@
 ; Build: nasm -f elf64 19-compare-procs.asm -o /tmp/o.o && ld /tmp/o.o -o /tmp/p && /tmp/p; echo $?
 ;
 ; --- your code below ---
+section .text
+    global _start
+_start:
+    mov rdi, 3
+    mov rsi, 5
+    call cmp_i64
+    mov rdi, rax
+    mov rax, 60
+    syscall
+cmp_i64:
+    ; TODO: implement cmp_i64
