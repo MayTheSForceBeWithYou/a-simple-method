@@ -52,15 +52,15 @@ Complete documentation of all flag resolutions with:
 
 ### Solution Exit Codes
 
-Assembled and ran **all 516 solution files** from lessons 00-18:
+Assembled and ran **all 478 solution files** from lessons 00-18:
 
 ```bash
 nasm -f elf64 FILE -o /tmp/o.o && ld /tmp/o.o -o /tmp/p && /tmp/p; echo $?
 ```
 
 **Results:**
-- ✅ All 516 files assembled successfully
-- ✅ All 516 files linked successfully
+- ✅ All 478 files assembled successfully
+- ✅ All 478 files linked successfully
 - ✅ All observed exit codes match prose descriptions
 
 ### Key Verifications
@@ -185,28 +185,18 @@ ad3d8a9 Rework lesson 16: sprites and collision with co-author camera-cull examp
 ## Testing Methodology
 
 1. **Installed NASM 2.16.01** on review VM
-2. **Assembled all 516 solutions** with `nasm -f elf64`
-3. **Linked all 516 solutions** with `ld`
-4. **Executed all 516 solutions** and recorded exit codes
+2. **Assembled all 478 solutions** with `nasm -f elf64`
+3. **Linked all 478 solutions** with `ld`
+4. **Executed all 478 solutions** and recorded exit codes
 5. **Cross-referenced** exit codes with LESSON.md prose claims
 6. **Tested all complete program listings** from LESSON.md files
 7. **Verified technical claims** against x86-64 System V ABI, Linux syscalls, NASM syntax
 
 ---
 
-## Recommended Actions
-
-### For Merge
-
-PR #2 is ready to merge. The prose is technically accurate and the two code fixes (L12 listing) ensure all listings assemble correctly.
-
-### For Future Work
+## For Future Work
 
 The 50+ placeholder drills identified in `docs/TECH_REVIEW_RESOLUTIONS.md` should be implemented in future PRs. These are intentionally incomplete teaching drills that currently exit constants instead of performing the described operations.
-
-### No Blockers
-
-No technical inaccuracies remain in the prose. The solutions are the ground truth for exit codes, and the prose accurately describes solution behavior.
 
 ---
 
@@ -233,11 +223,10 @@ No technical inaccuracies remain in the prose. The solutions are the ground trut
 
 ✅ **Technical review complete**  
 ✅ **All 56+ flags resolved**  
-✅ **All 516 solutions verified**  
+✅ **All 478 solutions verified**  
 ✅ **All LESSON.md listings assemble**  
 ✅ **Prose is technically accurate**  
 ✅ **Commits pushed to cursor/pedagogy-rework-a9bf**  
-✅ **PR #2 remains OPEN**  
-✅ **Zero merge blockers**
+✅ **PR #2 remains OPEN**
 
 The pedagogy rework maintains technical accuracy throughout. The course correctly teaches NASM x86-64 assembly, Linux syscalls, and System V AMD64 ABI. All claimed exit codes match observed behavior. All placeholder drills are appropriately labeled. The two fixes (L12 listing) ensure learners can copy-paste and run all code examples.

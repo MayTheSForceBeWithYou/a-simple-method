@@ -238,7 +238,9 @@ Several drill filenames mention SSE or SIMD, but **they do not execute SSE instr
 
 The drills use `shr` (logical shift) after `imul` because all test values are positive. For **negative** fixed-point values, use `sar` (arithmetic shift right) to preserve the sign bit. `shr` zero-fills, which treats negative Q16.16 as a large positive number.
 
-**Example:** `−2.0` in Q16.16 is `0xFFFE0000`. Logical `shr rax, 16` gives `0x0000FFFE` (65534, wrong). Arithmetic `sar rax, 16` gives `0xFFFFFFFE` (−2, correct).
+**Example (32-bit register):** `−2.0` in Q16.16 is `0xFFFE0000`. Logical `shr eax, 16` gives `0x0000FFFE` (65534, wrong). Arithmetic `sar eax, 16` gives `0xFFFFFFFE` (−2, correct).
+
+If using a 64-bit register, sign-extend first: `movsxd rax, eax` makes `rax = 0xFFFFFFFFFFFE0000`. Then `shr rax, 16` gives `0x0000FFFFFFFFFFFE` (wrong), while `sar rax, 16` gives `0xFFFFFFFFFFFFFFFE` (−2, correct).
 
 Similarly, after `idiv` in `11-fixed-div.asm`, use `sar` if the quotient can be negative.
 
@@ -264,7 +266,7 @@ Similarly, after `idiv` in `11-fixed-div.asm`, use `sar` if the quotient can be 
 
 4. You divide `1.0 / 2.0` in Q16.16 without shifting the dividend left. What integer result does `idiv` give, and why is that wrong?
 
-5. You have a negative Q16.16 value `−4.0` = `0xFFFC0000`. You `shr` it right by 16. What unsigned integer do you get? What do you get with `sar`?
+5. You have a negative Q16.16 value `−4.0` = `0xFFFC0000` in `eax`. You `shr eax, 16`. What value is in `eax`? What do you get with `sar eax, 16` instead?
 
 ## Key takeaways
 

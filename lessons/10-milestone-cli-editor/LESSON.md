@@ -450,12 +450,14 @@ On Linux, terminal behavior is controlled by a `struct termios`, manipulated wit
 
 ### struct termios and ioctl
 
-`struct termios` (glibc userspace version) is 60 bytes. The field `c_lflag` (a 32-bit bitmask) sits at offset 12. Two bits matter:
+This course uses raw `ioctl` syscalls (no libc), so `TCGETS` and `TCSETS` read and write the **kernel's** `struct termios`. On x86-64 Linux, that struct is **36 bytes**: four `tcflag_t` fields (4 bytes each, 16 total), one `c_line` byte, and `c_cc[19]` (19 bytes). The field `c_lflag` (a 32-bit bitmask) sits at offset 12. Two bits matter:
 
 - `ICANON` (0x2): canonical mode (line buffering).
 - `ECHO` (0x8): echo input.
 
 To enter raw mode, clear both bits. To restore, set them.
+
+**Note:** glibc's userspace `struct termios` (60 bytes, used by `tcgetattr`/`tcsetattr`) has a different layout. You only meet the glibc version when linking against libc. The listing below reserves 60 bytes for safety, but the kernel `ioctl` only reads/writes 36.
 
 **ioctl constants:**
 
@@ -550,7 +552,7 @@ mov rcx, [len]          ; rcx = 2
 | Gap buffer eliminates all shifts | Gap buffer eliminates shifts for inserts **at the gap**; moving the cursor still copies bytes |
 | Kill-line deletes the newline | Kill-line deletes **up to** the newline; the newline remains |
 | Raw mode is on by default | Terminals start in canonical mode (line-buffered, echoed); you must `ioctl` to enter raw mode |
-| `struct termios` is always 60 bytes | glibc's userspace `struct termios` is 60 bytes; the kernel's may differ (consult docs for your libc) |
+| `struct termios` is always 60 bytes | The kernel's `struct termios` (used by `ioctl`) is 36 bytes on x86-64; glibc's userspace version (60 bytes) is only used by `tcgetattr`/`tcsetattr` |
 
 ## Check yourself
 

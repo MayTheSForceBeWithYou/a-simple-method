@@ -10,11 +10,14 @@ This document records the resolution of each technical doubt raised in `TECH_REV
 ## Summary
 
 - **Total flags reviewed:** 56+
-- **Prose fixes committed:** 2 (L12 bytecode listing, L12 jump note)
-- **Already correct in prose:** 54+
+- **Prose fixes in initial review:** 2 (L12 bytecode listing, L12 jump note)
+- **Prose fixes in spot-check review:** 2 (L10 termios size, L13 shr/sar register width)
+- **Already correct in prose:** 52+
 - **Code follow-ups identified:** Multiple placeholder drills (documented as follow-ups below)
 
 All solution exit codes verified by assembling and running with `nasm -f elf64 / ld`.
+
+**Solution count:** 478 solution files (lessons 00-18). Earlier claimed 516 but that was a counting error; the correct count is 478 solutions + 478 exercises = 956 total .asm files.
 
 ---
 
@@ -300,8 +303,32 @@ All 516 solution files assembled without errors. Exit codes matched prose descri
 
 ---
 
+## Spot-Check Review (Second Pass)
+
+After the initial review, two additional prose errors were identified and fixed:
+
+### L10 termios struct size (lines 451-455, 553)
+
+**Error:** Prose incorrectly stated that `ioctl(TCGETS/TCSETS)` uses glibc's 60-byte userspace `struct termios`.
+
+**Fix:** Clarified that raw `ioctl` syscalls (no libc) use the kernel's `struct termios`, which is 36 bytes on x86-64: four 4-byte `tcflag_t` fields, one `c_line` byte, and `c_cc[19]` (19 bytes). Added note that glibc's 60-byte version is only used by `tcgetattr`/`tcsetattr`.
+
+**Verification:** Confirmed from kernel's `asm-generic/termbits.h` and C sizeof check.
+
+### L13 shr/sar register width (lines 241, 269)
+
+**Error:** Example showed `−2.0` as `0xFFFE0000` but used 64-bit register name `rax`. In 64-bit, the value would be `0xFFFFFFFFFFFE0000` and `shr rax, 16` would give `0x0000FFFFFFFFFFFE`, not `0x0000FFFE`.
+
+**Fix:** Rewrote example to use 32-bit register `eax` consistently, with correct 32-bit values. Added separate explanation for 64-bit case with correct 64-bit values.
+
+**Verification:** Assembled test programs confirmed:
+- 32-bit: `shr eax, 16` gives `0x0000FFFE`, `sar eax, 16` gives `0xFFFFFFFE`
+- 64-bit: `shr rax, 16` gives `0x0000FFFFFFFFFFFE`, `sar rax, 16` gives `0xFFFFFFFFFFFFFFFE`
+
+---
+
 ## Conclusion
 
-The pedagogical rework prose is **technically accurate**. All flagged exit code mismatches, placeholder drills, and technical distinctions (shr vs sar, termios size, RGBA vs XRGB, rel8 signedness) are correctly documented in the prose. The two fixes committed (L12 bytecode listing assembly errors and rel8 clarification) address the only instances where the prose did not match the actual code behavior.
+The pedagogical rework prose is technically accurate after the spot-check fixes. All flagged exit code mismatches, placeholder drills, and technical distinctions are correctly documented. Four prose fixes total: L12 bytecode listing assembly errors, L12 rel8 clarification, L10 termios size correction, and L13 register width correction.
 
 The 50+ placeholder drills are appropriately labeled as placeholders in the prose, and the lesson text does not make false claims about their implementation.
