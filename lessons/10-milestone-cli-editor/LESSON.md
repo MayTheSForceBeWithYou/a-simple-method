@@ -466,7 +466,7 @@ To enter raw mode, clear both bits. To restore, set them.
 
 ```asm
 section .bss
-    tio: resb 60
+    tio resb 60
 
 section .text
 global _start

@@ -227,12 +227,12 @@ This is 11 bytes: `"P6\n4 2\n255\n"`.
 
 ```asm
 section .data
-    path: db "out.ppm", 0
-    hdr: db "P6", 10, "4 2", 10, "255", 10
+    path db "out.ppm", 0
+    hdr db "P6", 10, "4 2", 10, "255", 10
     HLEN equ $ - hdr        ; 11 bytes
 
 section .bss
-    px: resb 24             ; 4*2 pixels, 3 bytes each
+    px resb 24             ; 4*2 pixels, 3 bytes each
 
 section .text
 global _start

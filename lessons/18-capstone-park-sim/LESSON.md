@@ -390,12 +390,12 @@ A tick loop runs a fixed number of iterations (e.g., 100):
 
 ```asm
 section .data
-    path: db "park.sav", 0
-    header: db "PK01"
-            dd 1            ; version dword
+    path db "park.sav", 0
+    header db "PK01"
+           dd 1            ; version dword
 
 section .bss
-    map: resb 64
+    map resb 64
 
 section .text
 global _start

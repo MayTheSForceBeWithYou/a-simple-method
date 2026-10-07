@@ -245,20 +245,22 @@ Instead of emitting x86-64 machine code, a simpler compiler can emit **bytecode*
 
 **Drill:** `19-bytecode-jump.asm` runs `3,2, 1,99, 1,5, 0` (jump over the `1,99`, then push 5, halt) and exits 5.
 
+**Note on jump displacement signedness:** The drill loads the displacement byte with `movzx` (unsigned zero-extend), so it only supports forward jumps (0–127 bytes). A backward jump would require `movsx` (signed sign-extend) so that byte values 128–255 are interpreted as negative offsets −128 to −1. The drill demonstrates forward jumps only.
+
 ### Fetch-decode-execute loop
 
 ```asm
 section .data
-    code: db 1, 4, 1, 5, 2, 0
+    code db 1, 4, 1, 5, 2, 0
 
 section .bss
-    stack: resq 16
-    sp: resq 1
+    st resq 16
+    sp_ resq 1
 
 section .text
 global _start
 _start:
-    mov qword [sp], 0
+    mov qword [sp_], 0
     lea rsi, [code]
 .fetch:
     movzx rax, byte [rsi]   ; fetch opcode
@@ -277,27 +279,27 @@ _start:
 .push:
     movzx rax, byte [rsi]   ; fetch operand
     inc rsi
-    mov rcx, [sp]
-    mov [stack + rcx*8], rax
-    inc qword [sp]
+    mov rcx, [sp_]
+    mov [st + rcx*8], rax
+    inc qword [sp_]
     jmp .fetch
 
 .add:
-    dec qword [sp]
-    mov rcx, [sp]
-    mov rbx, [stack + rcx*8]    ; second operand
-    dec qword [sp]
-    mov rcx, [sp]
-    mov rax, [stack + rcx*8]    ; first operand
+    dec qword [sp_]
+    mov rcx, [sp_]
+    mov rbx, [st + rcx*8]    ; second operand
+    dec qword [sp_]
+    mov rcx, [sp_]
+    mov rax, [st + rcx*8]    ; first operand
     add rax, rbx
-    mov [stack + rcx*8], rax
-    inc qword [sp]
+    mov [st + rcx*8], rax
+    inc qword [sp_]
     jmp .fetch
 
 .halt:
-    dec qword [sp]
-    mov rcx, [sp]
-    mov rdi, [stack + rcx*8]
+    dec qword [sp_]
+    mov rcx, [sp_]
+    mov rdi, [st + rcx*8]
     mov rax, 60
     syscall
 ```
