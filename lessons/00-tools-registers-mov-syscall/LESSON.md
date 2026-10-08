@@ -42,7 +42,7 @@ The size you choose matters. Writing to a 32-bit register name (`eax`) **zero-ex
 
 ## Moving data with `mov` and the zero idiom
 
-The `mov` instruction copies data from source to destination. The destination comes second (Intel/NASM syntax): `mov rax, 42` puts the immediate value 42 into `rax`, and `mov rdi, rax` copies the contents of `rax` into `rdi`. You cannot `mov` directly from memory to memory; one operand must be a register.
+The `mov` instruction copies data from source to destination. In Intel/NASM syntax the destination comes first and the source second (`mov dest, src`): `mov rax, 42` puts the immediate value 42 into `rax`, and `mov rdi, rax` copies the contents of `rax` into `rdi`. You cannot `mov` directly from memory to memory; at most one operand can be a memory reference.
 
 To zero a register, you could write `mov rax, 0`, which works but requires encoding the immediate value 0 in the instruction. The idiomatic way is `xor rax, rax` — exclusive-OR of a value with itself always produces zero, and this encoding is shorter and recognized by the CPU's dependency-tracking logic. You will see `xor edi, edi` (zeroing the 32-bit `edi`, which zero-extends to `rdi`) frequently in examples.
 
