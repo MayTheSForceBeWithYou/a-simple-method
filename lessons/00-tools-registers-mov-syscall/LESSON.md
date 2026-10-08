@@ -107,7 +107,7 @@ If you reverse `rsi` and `rdx`, the kernel interprets your count (11) as an addr
 
 | Confusion | What actually separates them |
 |-----------|------------------------------|
-| `mov rax, 42` vs `mov eax, 42` | Both set the low bits to 42, but `mov eax, 42` also clears the upper 32 bits of `rax` (zero-extension). `mov rax, 42` is a 64-bit immediate move. |
+| `mov rax, 42` vs `mov eax, 42` | Both leave all of `rax` equal to 42. Writing any 32-bit register zeroes the upper 32 bits of the full 64-bit register (zero-extension), so `mov eax, 42` clears the top half of `rax` too. Because 42 fits in 32 bits, NASM assembles `mov rax, 42` as the shorter `mov eax, 42` (5 bytes); you get a true 64-bit immediate (10 bytes) only for a value that needs it, or by writing `mov rax, strict qword 42`. |
 | `mov al, 42` vs `mov eax, 42` | `mov al, 42` only changes the lowest byte of `rax`; the upper bits remain unchanged. `mov eax, 42` zero-extends and clears all upper bits. |
 | `xor rdi, rdi` vs `mov rdi, 0` | Both set `rdi` to zero, but `xor rdi, rdi` produces a shorter encoding and is the idiomatic form. |
 | `syscall` vs `int 0x80` | On x86-64 Linux, use `syscall` (fast system call). `int 0x80` is the 32-bit legacy mechanism and has different register assignments. |
