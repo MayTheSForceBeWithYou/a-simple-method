@@ -1,0 +1,85 @@
+name: Windows Port CI
+
+on:
+  push:
+    branches:
+      - windows-port
+      - 'cursor/*-9de4'
+  pull_request:
+    branches:
+      - windows-port
+
+jobs:
+  smoke-test:
+    name: Build and Run Smoke Test
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up MSVC x64 environment
+      uses: ilammy/msvc-dev-cmd@v1
+      with:
+        arch: x64
+    
+    - name: Verify ml64 and link are available
+      shell: pwsh
+      run: |
+        Write-Host "Checking ml64..."
+        ml64 /? | Select-Object -First 5
+        Write-Host "`nChecking link..."
+        link /? | Select-Object -First 5
+        Write-Host "`nToolchain verified!"
+    
+    - name: Build smoke test
+      shell: pwsh
+      working-directory: tools/windows/smoke
+      run: |
+        Write-Host "Assembling hello.asm..."
+        ml64 /c /nologo hello.asm
+        if ($LASTEXITCODE -ne 0) {
+          throw "ml64 failed with exit code $LASTEXITCODE"
+        }
+        
+        Write-Host "Linking hello.exe..."
+        link /nologo /OUT:hello.exe /ENTRY:main /SUBSYSTEM:CONSOLE hello.obj kernel32.lib
+        if ($LASTEXITCODE -ne 0) {
+          throw "link failed with exit code $LASTEXITCODE"
+        }
+        
+        Write-Host "Build succeeded!"
+    
+    - name: Run smoke test
+      shell: pwsh
+      working-directory: tools/windows/smoke
+      run: |
+        Write-Host "Running hello.exe..."
+        $output = .\hello.exe | Out-String
+        $exitCode = $LASTEXITCODE
+        
+        Write-Host "Output: $output"
+        Write-Host "Exit code: $exitCode"
+        
+        # Check output
+        if ($output -notmatch "Hello from Windows x64!") {
+          throw "Smoke test failed: Expected 'Hello from Windows x64!' in output, got: $output"
+        }
+        
+        # Check exit code
+        if ($exitCode -ne 42) {
+          throw "Smoke test failed: Expected exit code 42, got $exitCode"
+        }
+        
+        Write-Host "Smoke test PASSED!" -ForegroundColor Green
+    
+    - name: Report Visual Studio version
+      shell: pwsh
+      run: |
+        $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+        if (Test-Path $vswhere) {
+          $vsInfo = & $vswhere -latest -format json | ConvertFrom-Json
+          Write-Host "Visual Studio Version: $($vsInfo.displayName)"
+          Write-Host "Installation Path: $($vsInfo.installationPath)"
+          Write-Host "Version: $($vsInfo.installationVersion)"
+        }

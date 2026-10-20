@@ -9,3 +9,10 @@ build/
 /tmp/
 *.swp
 *~
+
+# Windows build artifacts (MASM/MSVC)
+*.obj
+*.exe
+*.ilk
+*.pdb
+*.res
